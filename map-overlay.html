@@ -1,0 +1,100 @@
+
+<style>
+
+	:host {
+		display: block;
+		position: relative;
+	}
+      
+  #overlay {
+  	padding-bottom: 0px;
+    --overlay-toolbar-background-color: 					transparent;
+    --overlay-background-color:   								var(--app-body-color);
+    --overlay-toolbar-background-parallax-height: 100%;
+    --overlay-toolbar-vignette-opacity: 					0;
+    --overlay-toolbar-pointer-events: 						none;
+  }
+
+  #header-background {
+  	height:  				100%;
+  	opacity: 				0.7;
+  	pointer-events: none;
+  	background-image: 
+  		linear-gradient(
+    		to bottom, 
+    		rgba(0, 0, 0, 0.7), 
+    		rgba(0, 0, 0, 0)
+    	), 
+    	radial-gradient(
+    		ellipse at bottom, 
+    		rgba(0, 0, 0, 0) 70%, 
+    		rgb(33, 33, 33) 135%
+    	);
+  }
+
+  .btn {
+    opacity:    0;
+    transform:  translateX(100%);
+    transition: transform 0.3s var(--custom-ease),
+                opacity 0.2s ease-out;
+  }
+
+  .enter {
+    opacity:   1;
+    transform: none;
+  }
+
+  #map {
+    position: fixed;
+    top: 			0px;
+    left: 		0px;
+    height:   100vh;
+    width:    100vw;
+    --marker-size: 40px;
+  }
+
+  #spinner {
+  	background-color: rgba(0, 0, 0, 0.8);
+  }
+
+</style>
+
+
+<app-header-overlay id="overlay"
+										fixed-header
+                    header-size="2"
+                    prebuilt-animation="from-right"
+                    title=" "
+                    on-overlay-reset="__overlayReset">
+
+  <div id="header-background" slot="header-background-slot"></div>
+
+  <paper-icon-button class="btn enter"
+                     icon="app-icons:search"
+                     slot="top-toolbar-buttons-slot"
+                     on-click="__searchBtnClicked">
+  </paper-icon-button>
+
+  <paper-icon-button icon="map-icons:my-location"
+                     slot="top-toolbar-buttons-slot"
+                     on-click="__locationBtnClicked">
+  </paper-icon-button>
+
+
+  <app-map id="map"
+					 alt="[[alt]]"
+           draggable=[[draggable]]
+           lat="[[lat]]" 
+           lng="[[lng]]"
+           locations="[[locations]]"
+           scale="[[scale]]"
+           slot="content"
+           smooth="[[smooth]]"
+           zoom="[[zoom]]"
+           on-markers-changed="__markersChanged">
+  </app-map>
+
+</app-header-overlay>
+
+
+<app-spinner id="spinner" full-screen></app-spinner>
