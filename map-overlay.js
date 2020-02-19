@@ -15,14 +15,14 @@ import {
   html
 }                 from '@longlost/app-element/app-element.js';
 import {
-	enableScrolling,
-	listen,
-	unlisten,
-	wait,
-	warn
-} 								from '@longlost/utils/utils.js';
+  enableScrolling,
+  listen,
+  unlisten,
+  wait,
+  warn
+}                 from '@longlost/utils/utils.js';
 import htmlString from './map-overlay.html';
-import '@longlost/app-header-overlay/app-header-overlay.js';
+import '@longlost/app-overlays/app-header-overlay.js';
 import '@longlost/app-icons/app-icons.js';
 import '@longlost/app-spinner/app-spinner.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
@@ -62,7 +62,7 @@ class MapOverlay extends AppElement {
       */
       draggable: Boolean,
 
-    	// Float Or Object - {degrees, minutes, seconds, direction}
+      // Float Or Object - {degrees, minutes, seconds, direction}
       lat: Number, 
 
       // Float Or Object - {degrees, minutes, seconds, direction}
@@ -88,7 +88,7 @@ class MapOverlay extends AppElement {
 
 
   __overlayReset() {
-  	enableScrolling(true);
+    enableScrolling(true);
   }
 
 
@@ -125,8 +125,8 @@ class MapOverlay extends AppElement {
       // Don't allow cached positions or fast 
       // devices hide the spinner too fast.
       const [gps] = await Promise.all([
-      	this.$.map.getDeviceLocation(), 
-      	wait(800)
+        this.$.map.getDeviceLocation(), 
+        wait(800)
       ]);
 
       console.log(gps);
@@ -138,21 +138,21 @@ class MapOverlay extends AppElement {
       await warn('Could not locate your position.');
     }
     finally {
-    	this.$.spinner.hide();
+      this.$.spinner.hide();
     }
   }
 
 
   async open() {
 
-  	// Safari fix.
-  	enableScrolling(false);
+    // Safari fix.
+    enableScrolling(false);
 
-  	await this.$.overlay.open();
+    await this.$.overlay.open();
 
-  	// Ensure map measures itself after 
-  	// content is display block.
-  	return import('./app-map.js');
+    // Ensure map measures itself after 
+    // content is display block.
+    return import('./app-map.js');
   }
 
 }
