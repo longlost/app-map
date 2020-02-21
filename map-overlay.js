@@ -16,17 +16,57 @@ import {
 }                 from '@longlost/app-element/app-element.js';
 import {
   enableScrolling,
+  getComputedStyle,
   listen,
   unlisten,
   wait,
   warn
 }                 from '@longlost/utils/utils.js';
+import {
+  search, 
+  reverse
+}                 from './geosearch.js';
+import services   from '@longlost/services/services.js';
 import htmlString from './map-overlay.html';
-import '@longlost/app-overlays/app-header-overlay.js';
 import '@longlost/app-icons/app-icons.js';
+import '@longlost/app-inputs/search-input.js';
+import '@longlost/app-overlays/app-header-overlay.js';
 import '@longlost/app-spinner/app-spinner.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
 import './map-icons.js';
+
+// Normalize text search prop to be space and case insensitive.
+// Remove all '\', '/', spaces and commas, 
+// take the first 30 characters,
+// then lowercase the remaining string.
+const normalize = str => 
+  str.replace(/\\*\/*\s*\,*/g, '').slice(0, 40).toLowerCase();
+
+
+const hexToRGBA = (hex, alpha = 1) => {
+
+  const toHexidecimal = (a, b) => `0x${a}${b}`;
+
+  const toCss = (r, g, b) => 
+    `rgba(${Number(r)}, ${Number(g)}, ${Number(b)}, ${Number(alpha)})`;
+
+  // 3 digits
+  if (hex.length === 4) {
+    const r = toHexidecimal(hex[1], hex[1]);
+    const g = toHexidecimal(hex[2], hex[2]);
+    const b = toHexidecimal(hex[3], hex[3]);
+
+    return toCss(r, g, b);
+  } 
+  // 6 digits
+  else if (hex.length === 7) {
+    const r = toHexidecimal(hex[1], hex[2]);
+    const g = toHexidecimal(hex[3], hex[4]);
+    const b = toHexidecimal(hex[5], hex[6]);
+
+    return toCss(r, g, b);
+  }
+};
 
 
 class MapOverlay extends AppElement {
@@ -81,9 +121,225 @@ class MapOverlay extends AppElement {
       zoom: {
         type: Number,
         value: 12
+      },
+
+      _markerMoveListenerKey: Object,
+
+      // User selected from search suggestions,
+      // or single reverse-geosearch result.
+      _result: Object,
+
+      _results: Array,
+
+      // Tri-state value that allows Firebase entries to
+      // be favored over hitting the geosearch api
+      // whenever possible to avoid being banned.
+      _searchState: {
+        type: String,
+        value: 'done' // Or 'cached' or 'searching'.
+      },
+
+      // Search input value.
+      _searchVal: String,
+
+      _suggestions: {
+        type: Array,
+        computed: '__computeSuggestions(_results)'
       }
 
     };
+  }
+
+
+  static get observers() {
+    return [
+      '__resultChanged(_result)'
+    ];
+  }
+
+
+  connectedCallback() {
+    super.connectedCallback();
+
+    const hex = getComputedStyle(this, '--header-background-color');
+
+    this.updateStyles({
+      '--gradient-start': hexToRGBA(hex, 0.1),
+      '--gradient-end':   hexToRGBA(hex, 0.5)
+    });
+  }
+
+
+  __computeSuggestions(results) {
+    if (!Array.isArray(results)) { return; }
+
+    return results.map(result => result.label);
+  }
+
+
+  async __resultChanged(result) {
+    if (!result) { return; }
+
+    const {lat, lng, label} = result;
+
+    this.lat = lat;
+    this.lng = lng;
+    this._searchVal = label;
+
+    // WARNING:
+    //    Popup 'x' button will not work when devtools is open!!
+    if (this._marker) {
+      this._marker.bindPopup(`<p>${label}</p>`).openPopup();
+    }
+
+    this.fire('selected-changed: ', {selected: result});
+  }
+
+
+  async __geoSearch(query, type) {
+    try {
+
+      // Must debounce geolocation server hits by 1 sec
+      // to avoid getting banned. 
+      // 700ms here plus 300ms in __searchValChanged debouncer.
+      await this.debounce('map-overlay-search-debounce', 700);
+
+      // Bail if we get cached results from Firebase before
+      // hitting the severely limited geosearching api.
+      if (this._searchState === 'cached') { return; }
+
+      this._searchState = 'searching';
+
+      await this.$.spinner.show('Searching.');
+
+      if (type === 'latlng') {
+
+        const {lat, lng} = query;
+
+        const result = await reverse(lat, lng);
+
+        if (result) {
+
+          const normalized = normalize(result.label);
+
+          await services.set({
+            coll: 'geolocations',
+            doc:   normalized,
+            data:  {...result, queryKey: normalized}
+          });
+
+          this._result = result;
+        }
+      }
+      else {
+
+        const results = await search(query);
+
+        if (results.length) {
+
+          const saves = results.map(result => {
+
+            const normalized = normalize(result.label);
+
+            return services.set({
+              coll: 'geolocations',
+              doc:   normalized,
+              data:  {...result, queryKey: normalized}
+            });
+          });   
+
+          await Promise.all(saves);
+
+          this._results = results;
+        }
+      }
+    }
+    catch (error) {
+      if (error === 'debounced') { return; }
+      console.error(error);
+      await warn(`Uh Oh! That search didn't work.`);
+    }
+    finally {
+      this._searchState = 'done';
+      this.$.spinner.hide();
+    }
+  }
+
+
+  async __search(query, type) {
+    try {
+
+      // Wait for geocaching results to come back
+      // if a search is in flight.
+      if (this._searchState === 'searching') { return; }
+
+      await this.debounce('map-overlay-autocomplete-debounce', 300);
+
+      if (type === 'latlng') {
+
+        const {lat, lng} = query;
+
+        const cached = await services.query({
+          coll:      'geolocations',
+          limit:      1,
+          query: [{
+            field:     'lat', 
+            operator:  '==',
+            comparator: lat
+          }, {
+            field:     'lng', 
+            operator:  '==',
+            comparator: lng
+          }]
+        });
+
+        if (cached.length === 1) {
+
+          // Kill any pending geosearch invocations
+          // before hitting the api.
+          this._searchState = 'cached';
+          this._result      = cached[0];
+        }
+        else {
+          this.__geoSearch(query, type);
+        }
+      }
+      else {   
+
+        const cached = await services.textStartsWithSearch({
+          coll:      'geolocations', 
+          direction: 'asc', 
+          limit:      10, 
+          prop:      'queryKey', 
+          text:       normalize(query)
+        });
+
+        if (cached.length === 0) {
+          this.__geoSearch(query);
+        }
+        else {
+
+          // Kill any pending geosearch invocations
+          // before hitting the api.
+          this._searchState = 'cached';
+          this._results     = cached;
+        }
+      }
+    }
+    catch (error) {
+      if (error === 'debounced') { return; }
+      console.error(error);
+      await warn(`Uh Oh! That search didn't work.`);
+    }
+  }
+
+
+  __suggestionSelected(event) {
+    if (!Array.isArray(this._results) || this._results.length === 0) {
+      return;
+    }
+
+    this._result = this._results[event.detail.index];
   }
 
 
@@ -95,24 +351,20 @@ class MapOverlay extends AppElement {
   __markersChanged(event) {
     const [marker] = event.detail.value;
 
-    listen(marker, 'move', event => {
-      console.log('marker moved: ', event);
+    if (this._marker) {
+      unlisten(this._markerMoveListenerKey);
+    }
+
+    this._marker = marker;
+
+    this._markerMoveListenerKey = listen(marker, 'move', event => {
+
+      // Not due to human interaction, so ignore it.
+      if (!event.originalEvent) { return; }
+
+      // Use lat, lng to lookup address.
+      this.__search(event.latlng, 'latlng');
     });
-
-  }
-
-
-  async __searchBtnClicked() {
-    try {
-      await this.clicked();
-      
-      // this.$.search.open();
-
-    }
-    catch (error) {
-      if (error === 'click debounced') { return; }
-      console.error(error);
-    }
   }
 
 
@@ -129,17 +381,35 @@ class MapOverlay extends AppElement {
         wait(800)
       ]);
 
-      console.log(gps);
-
+      // Use lat, lng to lookup address.
+      this.__search(gps.latlng, 'latlng');
     }
     catch (error) {
       if (error === 'click debounced') { return; }
       console.error(error);
+
       await warn('Could not locate your position.');
-    }
-    finally {
+
       this.$.spinner.hide();
     }
+  }
+
+
+  __searchHandler(event) {
+    this.__search(event.detail.value.trim());
+  }
+
+
+  __searchValChanged(event) {
+    const {value} = event.detail;
+
+    if (this._result && this._result.label === value) { return; }
+
+    const trimmed = value.trim();
+
+    if (trimmed.length < 2) { return; }
+
+    this.__search(trimmed);
   }
 
 
