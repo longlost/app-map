@@ -32,6 +32,7 @@ import '@longlost/app-icons/app-icons.js';
 import '@longlost/app-inputs/search-input.js';
 import '@longlost/app-overlays/app-header-overlay.js';
 import '@longlost/app-spinner/app-spinner.js';
+import '@polymer/paper-fab/paper-fab.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
 import './map-icons.js';
 
@@ -66,6 +67,46 @@ const hexToRGBA = (hex, alpha = 1) => {
 
     return toCss(r, g, b);
   }
+};
+
+
+const cacheResult = result => {
+  const normalized = normalize(result.label);
+
+  return services.set({
+    coll: 'geolocations',
+    doc:   normalized,
+    data:  {...result, queryKey: normalized}
+  });
+};
+
+
+// Cache all successful searches for future use.
+const geoSearch = async query => {
+
+  const results = await search(query);
+
+  if (results.length > 0) {
+
+    const saves = results.map(cacheResult);   
+
+    await Promise.all(saves);
+  }
+
+  return results;
+};
+
+
+// Cache all successful searches for future use.
+const reverseGeoSearch = async (lat, lng) => {
+
+  const result = await reverse(lat, lng);
+
+  if (result) {
+    await cacheResult(result);
+  }
+
+  return result;
 };
 
 
@@ -130,6 +171,11 @@ class MapOverlay extends AppElement {
       _result: Object,
 
       _results: Array,
+
+      // Search state that helps avoid being banned
+      // from the nominatim api by preventing hitting
+      // the database while a previous request is in flight.
+      _searching: Boolean,
 
       // Tri-state value that allows Firebase entries to
       // be favored over hitting the geosearch api
@@ -196,86 +242,21 @@ class MapOverlay extends AppElement {
   }
 
 
-  async __geoSearch(query, type) {
-    try {
-
-      // Must debounce geolocation server hits by 1 sec
-      // to avoid getting banned. 
-      // 700ms here plus 300ms in __searchValChanged debouncer.
-      await this.debounce('map-overlay-search-debounce', 700);
-
-      // Bail if we get cached results from Firebase before
-      // hitting the severely limited geosearching api.
-      if (this._searchState === 'cached') { return; }
-
-      this._searchState = 'searching';
-
-      await this.$.spinner.show('Searching.');
-
-      if (type === 'latlng') {
-
-        const {lat, lng} = query;
-
-        const result = await reverse(lat, lng);
-
-        if (result) {
-
-          const normalized = normalize(result.label);
-
-          await services.set({
-            coll: 'geolocations',
-            doc:   normalized,
-            data:  {...result, queryKey: normalized}
-          });
-
-          this._result = result;
-        }
-      }
-      else {
-
-        const results = await search(query);
-
-        if (results.length) {
-
-          const saves = results.map(result => {
-
-            const normalized = normalize(result.label);
-
-            return services.set({
-              coll: 'geolocations',
-              doc:   normalized,
-              data:  {...result, queryKey: normalized}
-            });
-          });   
-
-          await Promise.all(saves);
-
-          this._results = results;
-        }
-      }
-    }
-    catch (error) {
-      if (error === 'debounced') { return; }
-      console.error(error);
-      await warn(`Uh Oh! That search didn't work.`);
-    }
-    finally {
-      this._searchState = 'done';
-      this.$.spinner.hide();
-    }
-  }
-
-
-  async __search(query, type) {
+  async __search({query, type, spinner}) {
     try {
 
       // Wait for geocaching results to come back
       // if a search is in flight.
-      if (this._searchState === 'searching') { return; }
+      if (this._searching) { return; }
 
-      await this.debounce('map-overlay-autocomplete-debounce', 300);
+      if (spinner) {
+        await this.$.spinner.show('Searching.');
+      }
+      else {
+        await this.debounce('map-overlay-autocomplete-debounce', 200);
+      }
 
-      if (type === 'latlng') {
+      if (type === 'reverse') {
 
         const {lat, lng} = query;
 
@@ -293,15 +274,23 @@ class MapOverlay extends AppElement {
           }]
         });
 
-        if (cached.length === 1) {
-
-          // Kill any pending geosearch invocations
-          // before hitting the api.
-          this._searchState = 'cached';
-          this._result      = cached[0];
+        if (cached.length > 0) {
+          this._result = cached[0];
         }
         else {
-          this.__geoSearch(query, type);
+
+          // Give a more generous debounce for nominatim api hits.
+          await this.debounce('map-overlay-reverse-search-debounce', 500);
+
+          this._searching = true;
+
+          const result = await reverseGeoSearch(lat, lng);
+
+          this._searching = false;
+
+          if (result) {
+            this._result = result;
+          }
         }
       }
       else {   
@@ -315,21 +304,37 @@ class MapOverlay extends AppElement {
         });
 
         if (cached.length === 0) {
-          this.__geoSearch(query);
+
+          // Give a more generous debounce for nominatim api hits.
+          await this.debounce('map-overlay-search-debounce', 500);
+
+          this._searching = true;
+
+          const results = await geoSearch(query);
+
+          this._searching = false;
+
+          if (results) {
+            this._results = results;
+          }
         }
         else {
-
-          // Kill any pending geosearch invocations
-          // before hitting the api.
-          this._searchState = 'cached';
-          this._results     = cached;
+          this._results = cached;
         }
       }
+
     }
     catch (error) {
       if (error === 'debounced') { return; }
+
       console.error(error);
+
       await warn(`Uh Oh! That search didn't work.`);
+
+      this._searching = false;
+    }
+    finally {
+      await this.$.spinner.hide();
     }
   }
 
@@ -357,13 +362,16 @@ class MapOverlay extends AppElement {
 
     this._marker = marker;
 
-    this._markerMoveListenerKey = listen(marker, 'move', event => {
-
-      // Not due to human interaction, so ignore it.
-      if (!event.originalEvent) { return; }
+    // Using 'moveend' instead of 'move' since it
+    // only fires once user has dropped the pin.
+    this._markerMoveListenerKey = listen(marker, 'moveend', event => {
 
       // Use lat, lng to lookup address.
-      this.__search(event.latlng, 'latlng');
+      this.__search({
+        query:   event.target._latlng, 
+        type:   'reverse', 
+        spinner: true
+      });
     });
   }
 
@@ -382,7 +390,11 @@ class MapOverlay extends AppElement {
       ]);
 
       // Use lat, lng to lookup address.
-      this.__search(gps.latlng, 'latlng');
+      this.__search({
+        query:   gps.latlng, 
+        type:   'reverse', 
+        spinner: true
+      });
     }
     catch (error) {
       if (error === 'click debounced') { return; }
@@ -396,7 +408,11 @@ class MapOverlay extends AppElement {
 
 
   __searchHandler(event) {
-    this.__search(event.detail.value.trim());
+    this.__search({
+      query:   event.detail.value.trim(), 
+      type:   'search', 
+      spinner: true
+    });
   }
 
 
@@ -409,7 +425,37 @@ class MapOverlay extends AppElement {
 
     if (trimmed.length < 2) { return; }
 
-    this.__search(trimmed);
+    this.__search({
+      query:   trimmed, 
+      type:   'search', 
+      spinner: false
+    });
+  }
+
+
+  async __zoomInFabClicked() {
+    try {
+      await this.clicked();
+
+      this.zoom = this.zoom === 18 ? this.zoom : this.zoom + 1;
+    }
+    catch (error) {
+      if (error === 'click debounced') { return; }
+      console.error(error);
+    }
+  }
+
+
+  async __zoomOutFabClicked() {
+    try {
+      await this.clicked();
+
+      this.zoom = this.zoom === 0 ? this.zoom : this.zoom - 1;
+    }
+    catch (error) {
+      if (error === 'click debounced') { return; }
+      console.error(error);
+    }
   }
 
 
