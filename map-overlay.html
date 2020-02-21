@@ -6,7 +6,7 @@
     position: relative;
     --blur-effect:             10px;
     --header-background-color: var(--app-dark-color);
-    --header-color:            var(--constant-dark-text);
+    --header-color:            var(--dark-text-color);
     --gradient-start:          rgba(0, 0, 0, 0.1);
     --gradient-end:            rgba(33, 33, 33, 0.5);
   }
@@ -46,6 +46,7 @@
     width:     calc(100% - 106px);
     max-width: 414px;
     background-color:         transparent;
+    color:                    var(--constant-light-text);
     --input-background-color: rgba(33, 33, 33, 0.8);
   }
 
@@ -63,7 +64,7 @@
     right:    16px;
     background-color: var(--app-accent-color);
     color:            var(--constant-dark-text);
-    opacity:          0.8;
+    opacity:          0.7;
   }
 
   #zoom-in-fab {
@@ -76,6 +77,7 @@
 
   #spinner {
     background-color: rgba(0, 0, 0, 0.8);
+    color:            var(--constant-light-text);
   }
 
   @media (min-width: 768px) {
@@ -89,8 +91,6 @@
     }
 
   }
-
-}
 
 </style>
 
@@ -125,6 +125,7 @@
 
   <app-map id="map"
            alt="[[alt]]"
+           dark-mode="[[darkMode]]"
            draggable=[[draggable]]
            lat="[[lat]]" 
            lng="[[lng]]"

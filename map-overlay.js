@@ -124,6 +124,8 @@ class MapOverlay extends AppElement {
       // Altitude in meters. Optional.
       alt: Number,
 
+      darkMode: Boolean,
+
       /*
         If there is only the single, automatic
         marker present (ie. no 'locations') then

@@ -25,6 +25,7 @@ import {
 // these styles are not put in the document head.
 import styles from '!css-loader!leaflet/dist/leaflet.css';
 import L      from 'leaflet';
+import 'leaflet.tilelayer.colorfilter';
 import '@polymer/iron-icon/iron-icon.js';
 import './map-icons.js';
 
@@ -64,6 +65,7 @@ class AppMap extends AppElement {
         #map {
           height: 100%;
           width:  100%;
+          background-color: inherit;
         }
 
         .marker-icon {
@@ -97,6 +99,11 @@ class AppMap extends AppElement {
 
       // Altitude in meters. Optional.
       alt: Number,
+
+      darkMode: {
+        type: Boolean,
+        value: false
+      },
 
       /*
         If there is only the single, automatic
@@ -158,7 +165,9 @@ class AppMap extends AppElement {
         type: Array,
         computed: '__computeMarkers(locations, draggable, _map, _icon)',
         observer: '__markersChanged'
-      }
+      },
+
+      _tileLayer: Object
 
     };
   }
@@ -167,6 +176,7 @@ class AppMap extends AppElement {
   static get observers() {
     return [
       '__altLatLngChanged(alt, _lat, _lng, locations, zoom, _map, _markers)',
+      '__darkModeChanged(darkMode, _tileLayer)',
       '__scaleChanged(scale, _map)'
     ];
   }
@@ -276,6 +286,21 @@ class AppMap extends AppElement {
     map.setView({alt, lat, lng}, zoom, {animate: this.smooth});
   }
 
+
+  __darkModeChanged(dark, tileLayer) {
+    if (!tileLayer) { return; }
+
+    if (dark) {
+      tileLayer.updateFilter([
+        'hue:180deg',
+        'invert:100%'
+      ]);
+    }
+    else {
+      tileLayer.updateFilter([]);
+    }
+  }
+
   // Show the scale bar on the lower left corner.
   __scaleChanged(bool, map) {
 
@@ -290,8 +315,9 @@ class AppMap extends AppElement {
     this._map = L.map(this.$.map, {zoomControl: false});
 
     // Add the OpenStreetMap tiles.
-    L.tileLayer(TILE_PROVIDER_URL, {
+    this._tileLayer = L.tileLayer.colorFilter(TILE_PROVIDER_URL, {
       attribution: ATTRIBUTION,
+      filter:      [],
       maxZoom:     19
     }).addTo(this._map);
     
