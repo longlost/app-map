@@ -1,79 +1,88 @@
 
 <style>
 
-	:host {
-		display: block;
-		position: relative;
-	}
+  :host {
+    display: block;
+    position: relative;
+    --header-background-color: var(--app-dark-color);
+    --header-color:            var(--constant-dark-text);
+    --gradient-start:          rgba(0, 0, 0, 0.1);
+    --gradient-end:            rgba(33, 33, 33, 0.5);
+  }
       
   #overlay {
-  	padding-bottom: 0px;
-    --overlay-toolbar-background-color: 					transparent;
-    --overlay-background-color:   								var(--app-body-color);
-    --overlay-toolbar-background-parallax-height: 100%;
-    --overlay-toolbar-vignette-opacity: 					0;
-    --overlay-toolbar-pointer-events: 						none;
+    padding-bottom: 0px;
+    --overlay-toolbar-background-color: transparent;
+    --overlay-toolbar-color:            var(--header-color);
+    --overlay-background-color:         var(--app-body-color);
+    --overlay-toolbar-pointer-events:   none;
   }
 
   #header-background {
-  	height:  				100%;
-  	opacity: 				0.7;
-  	pointer-events: none;
-  	background-image: 
-  		linear-gradient(
-    		to bottom, 
-    		rgba(0, 0, 0, 0.7), 
-    		rgba(0, 0, 0, 0)
-    	), 
-    	radial-gradient(
-    		ellipse at bottom, 
-    		rgba(0, 0, 0, 0) 70%, 
-    		rgb(33, 33, 33) 135%
-    	);
+    position:       absolute;
+    top:            0px;
+    right:          0px;
+    bottom:         0px;
+    left:           0px;
+    pointer-events: none;
+    opacity:        0.8;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter:         blur(10px);
+    background-image: radial-gradient(
+      ellipse at bottom, 
+      var(--gradient-start), 
+      var(--gradient-end)
+    );
+    box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.14),
+                0px 1px 5px 0px rgba(0, 0, 0, 0.12),
+                0px 3px 1px -2px rgba(0, 0, 0, 0.2);
   }
 
-  .btn {
-    opacity:    0;
-    transform:  translateX(100%);
-    transition: transform 0.3s var(--custom-ease),
-                opacity 0.2s ease-out;
-  }
-
-  .enter {
-    opacity:   1;
-    transform: none;
+  search-input {
+    width:     calc(100% - 106px);
+    max-width: 414px;
+    background-color:         transparent;
+    --input-background-color: rgba(33, 33, 33, 0.8);
   }
 
   #map {
     position: fixed;
-    top: 			0px;
-    left: 		0px;
+    top:      0px;
+    left:     0px;
     height:   100vh;
     width:    100vw;
     --marker-size: 40px;
   }
 
   #spinner {
-  	background-color: rgba(0, 0, 0, 0.8);
+    background-color:        rgba(0, 0, 0, 0.8);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter:         blur(10px);
   }
 
 </style>
 
 
 <app-header-overlay id="overlay"
-										fixed-header
-                    header-size="2"
+                    fixed-header
+                    header-size="1"
                     prebuilt-animation="from-right"
                     title=" "
                     on-overlay-reset="__overlayReset">
 
-  <div id="header-background" slot="header-background-slot"></div>
+  <div id="header-background" 
+       slot="header-background-slot">
+  </div>
 
-  <paper-icon-button class="btn enter"
-                     icon="app-icons:search"
-                     slot="top-toolbar-buttons-slot"
-                     on-click="__searchBtnClicked">
-  </paper-icon-button>
+
+  <search-input slot="top-toolbar-buttons-slot"
+                suggestions="[[_suggestions]]"
+                value="[[_searchVal]]"
+                on-search="__searchHandler"
+                on-suggestion-selected="__suggestionSelected"
+                on-value-changed="__searchValChanged">
+  </search-input>
+
 
   <paper-icon-button icon="map-icons:my-location"
                      slot="top-toolbar-buttons-slot"
@@ -82,7 +91,7 @@
 
 
   <app-map id="map"
-					 alt="[[alt]]"
+           alt="[[alt]]"
            draggable=[[draggable]]
            lat="[[lat]]" 
            lng="[[lng]]"
@@ -97,4 +106,6 @@
 </app-header-overlay>
 
 
-<app-spinner id="spinner" full-screen></app-spinner>
+<app-spinner id="spinner" 
+             full-screen>
+</app-spinner>
