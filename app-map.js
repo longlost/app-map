@@ -60,23 +60,29 @@ class AppMap extends AppElement {
           position: relative;
           overflow: hidden;
           height:   100%;
-          --marker-color: var(--app-dark-color);
-          --marker-size:  32px;
+          --added-marker-color: var(--app-accent-color);
+          --marker-color:       var(--app-dark-color);
+          --marker-size:        32px;
         }
 
         .marker-icon {
           position: absolute;
           top:     -200%;
           z-index: -1;
-          height: var(--marker-size);
-          width:  var(--marker-size);
-          color:  var(--marker-color);
+          height:   var(--marker-size);
+          width:    var(--marker-size);
         }
 
         .div-icon .marker-icon {
           position: static;
           top:      0px;
           z-index:  0;
+          color:    var(--marker-color);
+        }
+
+        .added-marker-icon .marker-icon {
+          color:   var(--added-marker-color);
+          z-index: 1;
         }
 
         #map {
@@ -275,7 +281,7 @@ class AppMap extends AppElement {
     return locations.map(loc => 
              L.marker(getPos(loc), {
                  icon: L.divIcon({
-                   className: 'div-icon', // Any setting here overwrites the default container div styles.
+                   className: loc.className ? `div-icon ${loc.className}` : 'div-icon',
                    html:      iconEl.cloneNode(true),
                    iconAnchor // Place tip of pin at marker lat/lng center.
                  }), 
@@ -410,7 +416,11 @@ class AppMap extends AppElement {
       throw new Error('Map not ready.');
     }
 
-    this.push('_locations', {...this._map.getCenter(), ...options});
+    this.push('_locations', {
+      ...this._map.getCenter(), 
+      className: 'added-marker-icon',  
+      ...options
+    });
   }
 
   // void -> Promise -> (gps <Object>, error <Object>).
