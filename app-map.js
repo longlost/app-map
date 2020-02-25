@@ -56,22 +56,33 @@ class AppMap extends AppElement {
       <style>
       
         :host {
-          display: block;
-          height:  100%;
+          display:  block;
+          position: relative;
+          overflow: hidden;
+          height:   100%;
           --marker-color: var(--app-dark-color);
           --marker-size:  32px;
+        }
+
+        .marker-icon {
+          position: absolute;
+          top:     -200%;
+          z-index: -1;
+          height: var(--marker-size);
+          width:  var(--marker-size);
+          color:  var(--marker-color);
+        }
+
+        .div-icon .marker-icon {
+          position: static;
+          top:      0px;
+          z-index:  0;
         }
 
         #map {
           height: 100%;
           width:  100%;
           background-color: inherit;
-        }
-
-        .marker-icon {
-          height: var(--marker-size);
-          width:  var(--marker-size);
-          color:  var(--marker-color);
         }
 
         ${this.stylePartial}
@@ -121,6 +132,7 @@ class AppMap extends AppElement {
         For example, each marker fires a 'move' event
         any time its position changes programmically or
         due to human interaction.
+        Use 'moveend' for human interaction only.
       */
       draggable: Boolean,
 
@@ -145,13 +157,20 @@ class AppMap extends AppElement {
         value: 12
       },
 
-      _icon: Object,
+      // L.divIcon iconAnchor array.
+      // Adjusts where the icon is placed.
+      _iconAnchor: Array,
+
+      // markerIcon ref.
+      _iconEl: Object,
 
       _lat: {
         type: Number,
         value: 0,
         computed: '__computePosDecimal(lat)'
       },
+
+      _locations: Array,
 
       _lng: {
         type: Number,
@@ -163,11 +182,13 @@ class AppMap extends AppElement {
 
       _markers: {
         type: Array,
-        computed: '__computeMarkers(locations, draggable, _map, _icon)',
+        computed: '__computeMarkers(_locations.*, draggable, _map, _iconEl, _iconAnchor)',
         observer: '__markersChanged'
       },
 
-      _tileLayer: Object
+      _tileLayer: Object,
+
+      _zoomListenerKey: Object
 
     };
   }
@@ -175,9 +196,12 @@ class AppMap extends AppElement {
 
   static get observers() {
     return [
-      '__altLatLngChanged(alt, _lat, _lng, locations, zoom, _map, _markers)',
+      '__altLatLngChanged(alt, _lat, _lng, _map)',
       '__darkModeChanged(darkMode, _tileLayer)',
-      '__scaleChanged(scale, _map)'
+      '__locationsChanged(locations)',
+      '__mapChanged(_map)',
+      '__scaleChanged(scale, _map)',
+      '__zoomChanged(zoom, _map)'
     ];
   }
 
@@ -189,7 +213,19 @@ class AppMap extends AppElement {
   }
 
 
+  disconnectedCallback() {
+    super.disconnectedCallback();
+
+    if (this._zoomListenerKey) {
+      unlisten(this._zoomListenerKey);
+    }
+  }
+
+
   __computePosDecimal(input) {
+
+    if (input === undefined || input === null) { return 0; }
+
     if (typeof input === 'number') {
       return input;
     }
@@ -215,37 +251,51 @@ class AppMap extends AppElement {
   }
 
 
-  __computeMarkers(locations, draggable, map, icon) {
-    if (!map || !icon) { return; }
+  __computeMarkers(polymerObj, draggable, map, iconEl, iconAnchor) {
+    if (!polymerObj || !map || !iconEl || !iconAnchor) { return; }
 
-    if (Array.isArray(locations)) {
+    const {base: locations} = polymerObj;
 
-      const getPos = location => {
+    if (!Array.isArray(locations)) { return; }
 
-        const {lat, lng} = location;
+    const getPos = location => {
 
-        if (typeof lat === 'number' && typeof lng === 'number') {
-          return location;
-        }
+      const {lat, lng} = location;
 
-        return {
-          lat: dmsToDecimal(lat),
-          lng: dmsToDecimal(lng)
-        };
+      if (typeof lat === 'number' && typeof lng === 'number') {
+        return location;
+      }
+
+      return {
+        lat: dmsToDecimal(lat),
+        lng: dmsToDecimal(lng)
       };
+    };
 
-      return locations.map(loc => 
-               L.marker(getPos(loc), {icon, ...loc.options}). // See L.marker options.
-                 bindPopup(loc.text).
-                 openPopup().
-                 addTo(map));
-    }
-      
-    return [L.marker({lat: 0, lng: 0}, {draggable, icon}).addTo(map)];
+    return locations.map(loc => 
+             L.marker(getPos(loc), {
+                 icon: L.divIcon({
+                   className: 'div-icon', // Any setting here overwrites the default container div styles.
+                   html:      iconEl.cloneNode(true),
+                   iconAnchor // Place tip of pin at marker lat/lng center.
+                 }), 
+                 draggable, 
+                 ...loc.options
+               }). // See L.marker options.
+               bindPopup(loc.text).
+               openPopup().
+               addTo(map));
+  }
+
+  
+  __locationsChanged(locations) {
+    this.set('_locations', locations);
   }
 
 
   __markersChanged(newMarkers, oldMarkers) {
+
+    // Clean up.
     if (Array.isArray(oldMarkers)) {
       oldMarkers.forEach(marker => {
         marker.remove();
@@ -270,20 +320,18 @@ class AppMap extends AppElement {
   }
 
 
-  __altLatLngChanged(alt, lat, lng, locations, zoom, map, markers) {
+  __altLatLngChanged(alt, lat, lng, map) {
     if (
       typeof lat !== 'number' || 
       typeof lng !== 'number' ||
       !map
     ) { return; }
 
-    if (!Array.isArray(locations) && Array.isArray(markers)) {
-      markers.forEach(marker => {
-        marker.setLatLng({lat, lng});
-      });
-    }
+    map.setView({alt, lat, lng}, this.zoom, {animate: this.smooth});
 
-    map.setView({alt, lat, lng}, zoom, {animate: this.smooth});
+    if (!this.locations) {
+      this.set('_locations', [{lat, lng}]);
+    }
   }
 
 
@@ -301,12 +349,40 @@ class AppMap extends AppElement {
     }
   }
 
+
+  __mapChanged(map) {
+    if (!map) { return; }
+
+    this._zoomListenerKey = listen(map, 'zoomend', this.__zoomendHandler.bind(this));
+  }
+
   // Show the scale bar on the lower left corner.
   __scaleChanged(bool, map) {
 
     if (bool && map) {      
       L.control.scale().addTo(map);
     }
+  }
+
+
+  __zoomChanged(zoom, map) {
+    if (typeof zoom !== 'number' || !map) { return; }
+
+    map.setZoom(zoom, {animate: this.smooth});
+  }
+
+
+  __zoomendHandler(event) {
+    this.fire('zoom-changed', {value: this._map.getZoom()});
+  }
+
+  // Dynamically center the bottom middle of 
+  // the icon to the actual marker location.
+  __setIconAnchor() {
+
+    const {height, width} = this._iconEl.getBoundingClientRect();
+
+    this._iconAnchor = [width / 2, height];
   }
 
   // Initialize Leaflet.
@@ -321,15 +397,20 @@ class AppMap extends AppElement {
       maxZoom:     19
     }).addTo(this._map);
     
-    // Dynamically center the bottom middle of 
-    // the icon to the actual marker location.
-    const {height, width} = this.$.markerIcon.getBoundingClientRect();
+    // This ref is cloned for each marker.
+    this._iconEl = this.$.markerIcon;
 
-    this._icon = L.divIcon({
-      className:  '', // Any setting here overwrites the default container div styles.
-      html:       this.$.markerIcon,
-      iconAnchor: [width / 2, height] // Place tip of pin at marker lat/lng center.
-    });
+    this.__setIconAnchor();
+  }
+
+
+  addMarker(options = {}) {
+
+    if (!this._map || !this._iconAnchor) {
+      throw new Error('Map not ready.');
+    }
+
+    this.push('_locations', {...this._map.getCenter(), ...options});
   }
 
   // void -> Promise -> (gps <Object>, error <Object>).
@@ -369,6 +450,14 @@ class AppMap extends AppElement {
       foundKey = listen(this._map, 'locationfound', handler);
       errorKey = listen(this._map, 'locationerror', handler);     
     });   
+  }
+
+
+  resize() {
+    if (this._map) {
+      this.__setIconAnchor();
+      this._map.invalidateSize();
+    }
   }
 
 }

@@ -35,6 +35,7 @@ import '@longlost/app-spinner/app-spinner.js';
 import '@polymer/paper-fab/paper-fab.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
 import './map-icons.js';
+import './app-map.js';
 
 // Normalize text search prop to be space and case insensitive.
 // Remove all '\', '/', spaces and commas, 
@@ -166,7 +167,12 @@ class MapOverlay extends AppElement {
         value: 12
       },
 
-      _markerMoveListenerKey: Object,
+      // First Leaflet marker element from array 
+      // of markers. Only one marker in the 
+      // array unless 'locations' is set.
+      _marker: Object,
+
+      _markerMoveListenerKeys: Array,
 
       // User selected from search suggestions,
       // or single reverse-geosearch result.
@@ -238,9 +244,10 @@ class MapOverlay extends AppElement {
     //    Popup 'x' button will not work when devtools is open!!
     if (this._marker) {
       this._marker.bindPopup(`<p>${label}</p>`).openPopup();
+      this._marker.setLatLng({lat, lng});
     }
 
-    this.fire('selected-changed: ', {selected: result});
+    this.fire('selected-changed', {selected: result});
   }
 
 
@@ -356,25 +363,35 @@ class MapOverlay extends AppElement {
 
 
   __markersChanged(event) {
-    const [marker] = event.detail.value;
+    const markers = event.detail.value;
 
-    if (this._marker) {
-      unlisten(this._markerMoveListenerKey);
+    if (this._markerMoveListenerKeys) {
+      this._markerMoveListenerKeys.forEach(key => {
+        unlisten(this._markerMoveListenerKey);
+      });
     }
-
-    this._marker = marker;
 
     // Using 'moveend' instead of 'move' since it
     // only fires once user has dropped the pin.
-    this._markerMoveListenerKey = listen(marker, 'moveend', event => {
+    this._markerMoveListenerKeys = markers.map(marker => {
+      return listen(marker, 'moveend', event => {
 
-      // Use lat, lng to lookup address.
-      this.__search({
-        query:   event.target._latlng, 
-        type:   'reverse', 
-        spinner: true
+        // Set currently "focused" marker.
+        this._marker = marker;
+
+        // Use lat, lng to lookup address.
+        this.__search({
+          query:   event.target._latlng, 
+          type:   'reverse', 
+          spinner: true
+        });
       });
     });
+  }
+
+
+  __zoomChanged(event) {
+    this.zoom = event.detail.value;
   }
 
 
@@ -435,6 +452,19 @@ class MapOverlay extends AppElement {
   }
 
 
+  async __pinDropBtnClicked() {
+    try {
+      await this.clicked();
+
+      this.$.map.addMarker();
+    }
+    catch (error) {
+      if (error === 'click debounced') { return; }
+      console.error(error);
+    }
+  }
+
+
   async __zoomInFabClicked() {
     try {
       await this.clicked();
@@ -470,7 +500,7 @@ class MapOverlay extends AppElement {
 
     // Ensure map measures itself after 
     // content is display block.
-    return import('./app-map.js');
+    this.$.map.resize();
   }
 
 }

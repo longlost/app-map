@@ -43,7 +43,7 @@
   }
 
   search-input {
-    width:     calc(100% - 106px);
+    width:     calc(100% - 152px);
     max-width: 414px;
     background-color:         transparent;
     color:                    var(--constant-light-text);
@@ -123,6 +123,12 @@
   </paper-icon-button>
 
 
+  <paper-icon-button icon="map-icons:pin-drop"
+                     slot="top-toolbar-buttons-slot"
+                     on-click="__pinDropBtnClicked">
+  </paper-icon-button>
+
+
   <app-map id="map"
            alt="[[alt]]"
            dark-mode="[[darkMode]]"
@@ -134,7 +140,8 @@
            slot="content"
            smooth="[[smooth]]"
            zoom="[[zoom]]"
-           on-markers-changed="__markersChanged">
+           on-markers-changed="__markersChanged"
+           on-zoom-changed="__zoomChanged">
   </app-map>
 
 
