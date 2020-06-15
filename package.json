@@ -1,6 +1,6 @@
 {
   "name": "@longlost/app-map",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Custom element wrapper for leaflet map api.",
   "main": "app-map.js",
   "scripts": {
@@ -17,26 +17,26 @@
   },
   "homepage": "https://github.com/longlost/app-map#readme",
   "dependencies": {
-    "@longlost/app-element": "^1.1.1",
-    "@longlost/app-icons": "^1.0.11",
-    "@longlost/app-inputs": "^1.3.8",
-    "@longlost/app-overlays": "^1.0.2",
-    "@longlost/app-spinner": "^1.1.1",
-    "@longlost/services": "^3.1.2",
-    "@longlost/utils": "^1.3.5",
+    "@longlost/app-element": "^2.0.0",
+    "@longlost/app-icons": "^1.0.12",
+    "@longlost/app-inputs": "^1.3.9",
+    "@longlost/app-overlays": "^1.3.3",
+    "@longlost/app-spinner": "^1.2.0",
+    "@longlost/services": "^3.2.3",
+    "@longlost/utils": "^1.5.0",
     "@polymer/iron-icon": "^3.0.1",
     "@polymer/iron-iconset-svg": "^3.0.1",
     "@polymer/paper-icon-button": "^3.0.2",
-    "@polymer/polymer": "^3.3.1",
+    "@polymer/polymer": "^3.4.1",
     "leaflet": "^1.6.0",
     "leaflet.tilelayer.colorfilter": "^1.2.5"
   },
   "devDependencies": {
     "@polymer/iron-demo-helpers": "^3.1.0",
     "@polymer/test-fixture": "^4.0.2",
-    "@webcomponents/webcomponentsjs": "^2.4.1",
+    "@webcomponents/webcomponentsjs": "^2.4.3",
     "chai": "^4.2.0",
-    "mocha": "^7.0.0",
-    "wct-mocha": "^1.0.1"
+    "mocha": "^8.0.1",
+    "wct-mocha": "^1.1.0"
   }
 }
