@@ -13,19 +13,20 @@
 import {
   AppElement, 
   html
-}                 from '@longlost/app-element/app-element.js';
+} from '@longlost/app-element/app-element.js';
+
 import {
   enableScrolling,
   getComputedStyle,
-  listen,
-  unlisten,
   wait,
   warn
-}                 from '@longlost/utils/utils.js';
+} from '@longlost/utils/utils.js';
+
 import {
   search, 
   reverse
-}                 from './geosearch.js';
+} from './geosearch.js';
+
 import services   from '@longlost/services/services.js';
 import htmlString from './map-overlay.html';
 import '@longlost/app-icons/app-icons.js';
@@ -171,8 +172,6 @@ class MapOverlay extends AppElement {
       // of markers. Only one marker in the 
       // array unless 'locations' is set.
       _marker: Object,
-
-      _markerMoveListenerKeys: Array,
 
       // User selected from search suggestions,
       // or single reverse-geosearch result.
@@ -362,30 +361,28 @@ class MapOverlay extends AppElement {
   }
 
 
+  __markerMoveendHandler(marker, event) {
+
+    // Set currently "focused" marker.
+    this._marker = marker;
+
+    // Use lat, lng to lookup address.
+    this.__search({
+      query:   event.target._latlng, 
+      type:   'reverse', 
+      spinner: true
+    });
+  }
+
+
   __markersChanged(event) {
     const markers = event.detail.value;
 
-    if (this._markerMoveListenerKeys) {
-      this._markerMoveListenerKeys.forEach(key => {
-        unlisten(this._markerMoveListenerKey);
-      });
-    }
-
-    // Using 'moveend' instead of 'move' since it
-    // only fires once user has dropped the pin.
-    this._markerMoveListenerKeys = markers.map(marker => {
-      return listen(marker, 'moveend', event => {
-
-        // Set currently "focused" marker.
-        this._marker = marker;
-
-        // Use lat, lng to lookup address.
-        this.__search({
-          query:   event.target._latlng, 
-          type:   'reverse', 
-          spinner: true
-        });
-      });
+    // Cleanup old listeners on preexisting markers first.
+    // Add new listeners to all markers, both new and old.
+    markers.forEach(marker => {
+      marker.removeEventListener('moveend', this.__markerMoveendHandler.bind(this, marker));
+      marker.addEventListener(   'moveend', this.__markerMoveendHandler.bind(this, marker));
     });
   }
 

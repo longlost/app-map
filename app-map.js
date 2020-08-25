@@ -10,17 +10,9 @@
   *
   **/
 
-import {
-  AppElement, 
-  html
-}             from '@longlost/app-element/app-element.js';
-import {
-  htmlLiteral
-}             from '@polymer/polymer/lib/utils/html-tag.js';
-import {
-  listen,
-  unlisten
-}             from '@longlost/utils/utils.js';
+import {AppElement, html} from '@longlost/app-element/app-element.js';
+import {htmlLiteral}      from '@polymer/polymer/lib/utils/html-tag.js';
+
 // Disable webpack config 'style-loader' so 
 // these styles are not put in the document head.
 import styles from '!css-loader!leaflet/dist/leaflet.css';
@@ -192,9 +184,7 @@ class AppMap extends AppElement {
         observer: '__markersChanged'
       },
 
-      _tileLayer: Object,
-
-      _zoomListenerKey: Object
+      _tileLayer: Object
 
     };
   }
@@ -222,8 +212,8 @@ class AppMap extends AppElement {
   disconnectedCallback() {
     super.disconnectedCallback();
 
-    if (this._zoomListenerKey) {
-      unlisten(this._zoomListenerKey);
+    if (this._map) {
+      this._map.removeEventListener('zoomend', this.__zoomendHandler.bind(this));
     }
   }
 
@@ -359,7 +349,7 @@ class AppMap extends AppElement {
   __mapChanged(map) {
     if (!map) { return; }
 
-    this._zoomListenerKey = listen(map, 'zoomend', this.__zoomendHandler.bind(this));
+    map.addEventListener('zoomend', this.__zoomendHandler.bind(this));
   }
 
   // Show the scale bar on the lower left corner.
@@ -432,16 +422,13 @@ class AppMap extends AppElement {
 
     this._map.locate({enableHighAccuracy: true});
 
-    let foundKey; 
-    let errorKey; 
-
     return new Promise((resolve, reject) => {
 
       const handler = event => {
 
         // Only listen once, so cleanup listeners.
-        unlisten(foundKey);
-        unlisten(errorKey);
+        this._map.removeEventListener('locationfound', handler);
+        this._map.removeEventListener('locationerror', handler); 
 
         if (event.code && event.message) {
           reject(event);
@@ -457,8 +444,8 @@ class AppMap extends AppElement {
         resolve(rest);
       };
 
-      foundKey = listen(this._map, 'locationfound', handler);
-      errorKey = listen(this._map, 'locationerror', handler);     
+      this._map.addEventListener('locationfound', handler);
+      this._map.addEventListener('locationerror', handler);     
     });   
   }
 
