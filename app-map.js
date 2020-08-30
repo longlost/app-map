@@ -203,7 +203,9 @@ class AppMap extends AppElement {
 
 
   connectedCallback() {
-    super.connectedCallback(); 
+    super.connectedCallback();
+
+    this.__zoomendHandler = this.__zoomendHandler.bind(this);
 
     this.__leaflet();
   }
@@ -213,7 +215,7 @@ class AppMap extends AppElement {
     super.disconnectedCallback();
 
     if (this._map) {
-      this._map.removeEventListener('zoomend', this.__zoomendHandler.bind(this));
+      this._map.removeEventListener('zoomend', this.__zoomendHandler);
     }
   }
 
@@ -349,7 +351,7 @@ class AppMap extends AppElement {
   __mapChanged(map) {
     if (!map) { return; }
 
-    map.addEventListener('zoomend', this.__zoomendHandler.bind(this));
+    map.addEventListener('zoomend', this.__zoomendHandler);
   }
 
   // Show the scale bar on the lower left corner.
