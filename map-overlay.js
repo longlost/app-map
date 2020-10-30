@@ -27,7 +27,7 @@ import {
   reverse
 } from './geosearch.js';
 
-import services   from '@longlost/services/services.js';
+import services   from '@longlost/app-shell/services/services.js';
 import htmlString from './map-overlay.html';
 import '@longlost/app-icons/app-icons.js';
 import '@longlost/app-inputs/search-input.js';
