@@ -1,6 +1,6 @@
 {
   "name": "@longlost/app-map",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "description": "Custom element wrapper for leaflet map api.",
   "main": "app-map.js",
   "scripts": {
