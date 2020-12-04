@@ -434,6 +434,7 @@ class AppMap extends AppElement {
 
         if (event.code && event.message) {
           reject(event);
+          return;
         }
 
         // Pull out unnecessary properties to clean up the api.
