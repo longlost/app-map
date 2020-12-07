@@ -13,23 +13,22 @@
 import {
   AppElement, 
   html
-} from '@longlost/app-element/app-element.js';
+} from '@longlost/app-core/app-element.js';
 
 import {
   enableScrolling,
   getComputedStyle,
   wait,
   warn
-} from '@longlost/utils/utils.js';
+} from '@longlost/app-core/utils.js';
 
 import {
   search, 
   reverse
 } from './geosearch.js';
 
-import services   from '@longlost/app-shell/services/services.js';
+import services   from '@longlost/app-core/services/services.js';
 import htmlString from './map-overlay.html';
-import '@longlost/app-icons/app-icons.js';
 import '@longlost/app-inputs/search-input.js';
 import '@longlost/app-overlays/app-header-overlay.js';
 import '@longlost/app-spinner/app-spinner.js';
