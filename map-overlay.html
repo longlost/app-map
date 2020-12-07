@@ -5,14 +5,15 @@
     display: block;
     position: relative;
     --blur-effect:             10px;
-    --header-background-color: var(--app-dark-color);
-    --header-color:            var(--app-dark-color-text);
+    --header-background-color: var(--app-primary-dark-color);
+    --header-color:            var(--app-primary-dark-color-text);
     --gradient-start:          rgba(0, 0, 0, 0.1);
     --gradient-end:            rgba(33, 33, 33, 0.5);
   }
       
   #overlay {
     padding-bottom: 0px;
+    --overlay-toolbar-backdrop-filter:  blur(var(--blur-effect));
     --overlay-toolbar-background-color: transparent;
     --overlay-toolbar-color:            var(--header-color);
     --overlay-background-color:         var(--app-body-color);
@@ -103,7 +104,6 @@
                     on-overlay-reset="__overlayReset">
 
   <div id="header-background"
-       class="blur" 
        slot="header-background-slot">
   </div>
 

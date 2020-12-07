@@ -258,6 +258,21 @@
     scroll-behavior-polyfill "^2.0.13"
     workbox-window "^6.0.2"
 
+"@longlost/app-core@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@longlost/app-core/-/app-core-1.1.1.tgz#0b9c24a7eafa23e449e3482683176013855f9133"
+  integrity sha512-InHtobwngPLv4WXOkpBZcuCXm4xwFBi80tYi1OO4UgBGbllJ06A6JXxeBr/XzXLvgAscQXDCtc4PEcb3cJVeZg==
+  dependencies:
+    "@polymer/iron-iconset-svg" "^3.0.1"
+    "@polymer/paper-styles" "^3.0.1"
+    "@polymer/polymer" "^3.4.1"
+    "@ungap/global-this" "^0.4.2"
+    comlink "^4.3.0"
+    firebase "^8.1.2"
+    mime-types "^2.1.27"
+    scroll-behavior-polyfill "^2.0.13"
+    workbox-window "^6.0.2"
+
 "@longlost/app-inputs@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@longlost/app-inputs/-/app-inputs-2.0.0.tgz#3e2ae760ff562efd7ed8cb15e9172b746190dbbf"
@@ -281,12 +296,12 @@
     "@polymer/paper-ripple" "^3.0.2"
     "@polymer/polymer" "^3.4.1"
 
-"@longlost/app-overlays@^1.3.10":
-  version "1.3.10"
-  resolved "https://registry.yarnpkg.com/@longlost/app-overlays/-/app-overlays-1.3.10.tgz#42e7ebe7cf1a8a7fc82f8fac1cac4bc03f151298"
-  integrity sha512-ejZ4/egaGqCBNEVV6d7V6B5quZTViwzFfPUhVMIswgb8CydPb1Fyc30pGLPlXmzLzOevUtk/SsQ4I7ucvSDSaw==
+"@longlost/app-overlays@^1.3.11":
+  version "1.3.11"
+  resolved "https://registry.yarnpkg.com/@longlost/app-overlays/-/app-overlays-1.3.11.tgz#23c69d5ac36fef95a37f4fc043e4f9494f74626f"
+  integrity sha512-J5m1tFgCipIDQTgeoGDlFXs0o2oiXrXkure9bgfHq4xiRc0exEtJJatMBC+NvW6Pr9RceX8fyfcdDrWd9ZDIRg==
   dependencies:
-    "@longlost/app-core" "^1.0.0"
+    "@longlost/app-core" "^1.1.1"
     "@polymer/app-layout" "^3.1.0"
     "@polymer/paper-card" "^3.0.1"
     "@polymer/paper-icon-button" "^3.0.2"
