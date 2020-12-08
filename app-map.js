@@ -12,11 +12,8 @@
 
 import {AppElement, html} from '@longlost/app-core/app-element.js';
 import {htmlLiteral}      from '@polymer/polymer/lib/utils/html-tag.js';
-
-// Disable webpack config 'style-loader' so 
-// these styles are not put in the document head.
-import styles from '!css-loader!leaflet/dist/leaflet.css';
-import L      from 'leaflet';
+import styles             from 'leaflet/dist/leaflet.css';
+import L                  from 'leaflet';
 import 'leaflet.tilelayer.colorfilter';
 import '@polymer/iron-icon/iron-icon.js';
 import './map-icons.js';
