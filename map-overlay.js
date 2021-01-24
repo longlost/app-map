@@ -72,6 +72,7 @@ const hexToRGBA = (hex, alpha = 1) => {
 
 
 const cacheResult = result => {
+  
   const normalized = normalize(result.label);
 
   return services.set({
@@ -112,6 +113,7 @@ const reverseGeoSearch = async (lat, lng) => {
 
 
 class MapOverlay extends AppElement {
+
   static get is() { return 'map-overlay'; }
 
   static get template() {
@@ -124,8 +126,6 @@ class MapOverlay extends AppElement {
 
       // Altitude in meters. Optional.
       alt: Number,
-
-      darkMode: Boolean,
 
       /*
         If there is only the single, automatic
@@ -211,6 +211,7 @@ class MapOverlay extends AppElement {
 
 
   connectedCallback() {
+
     super.connectedCallback();
 
     const hex = getComputedStyle(this, '--header-background-color');
@@ -223,6 +224,7 @@ class MapOverlay extends AppElement {
 
 
   __computeSuggestions(results) {
+
     if (!Array.isArray(results)) { return; }
 
     return results.map(result => result.label);
@@ -230,6 +232,7 @@ class MapOverlay extends AppElement {
 
 
   async __resultChanged(result) {
+
     if (!result) { return; }
 
     const {lat, lng, label} = result;
@@ -250,6 +253,7 @@ class MapOverlay extends AppElement {
 
 
   async __search({query, type, spinner}) {
+
     try {
 
       // Wait for geocaching results to come back
@@ -347,6 +351,7 @@ class MapOverlay extends AppElement {
 
 
   __suggestionSelected(event) {
+
     if (!Array.isArray(this._results) || this._results.length === 0) {
       return;
     }
@@ -356,6 +361,7 @@ class MapOverlay extends AppElement {
 
 
   __overlayReset() {
+
     enableScrolling(true);
   }
 
@@ -375,6 +381,7 @@ class MapOverlay extends AppElement {
 
 
   __markersChanged(event) {
+
     const markers = event.detail.value;
 
     // Cleanup old listeners on preexisting markers first.
@@ -387,11 +394,13 @@ class MapOverlay extends AppElement {
 
 
   __zoomChanged(event) {
+
     this.zoom = event.detail.value;
   }
 
 
   async __locationBtnClicked() {
+
     try {
       await this.clicked();
 
@@ -423,6 +432,7 @@ class MapOverlay extends AppElement {
 
 
   __searchHandler(event) {
+
     this.__search({
       query:   event.detail.value.trim(), 
       type:   'search', 
@@ -432,6 +442,7 @@ class MapOverlay extends AppElement {
 
 
   __searchValChanged(event) {
+
     const {value} = event.detail;
 
     if (this._result && this._result.label === value) { return; }
@@ -449,6 +460,7 @@ class MapOverlay extends AppElement {
 
 
   async __pinDropBtnClicked() {
+
     try {
       await this.clicked();
 
@@ -462,6 +474,7 @@ class MapOverlay extends AppElement {
 
 
   async __zoomInFabClicked() {
+
     try {
       await this.clicked();
 
@@ -475,6 +488,7 @@ class MapOverlay extends AppElement {
 
 
   async __zoomOutFabClicked() {
+
     try {
       await this.clicked();
 

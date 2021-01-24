@@ -23,7 +23,8 @@ const ATTRIBUTION       = '&copy; <a href="https://openstreetmap.org/copyright">
 const TILE_PROVIDER_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'; // OpenStreetMap tiles.
 
 
-const dmsToDecimal = ({degrees, minutes, seconds, direction}) => {   
+const dmsToDecimal = ({degrees, minutes, seconds, direction}) => { 
+  
   const decimal = Number(degrees) + Number(minutes) / 60 + Number(seconds) / (60 * 60);
   const dir     = direction.toUpperCase();
 
@@ -37,6 +38,7 @@ const dmsToDecimal = ({degrees, minutes, seconds, direction}) => {
 
 
 class AppMap extends AppElement {
+
   static get is() { return 'app-map'; }
 
   static get template() {
@@ -106,11 +108,6 @@ class AppMap extends AppElement {
       // Altitude in meters. Optional.
       alt: Number,
 
-      darkMode: {
-        type: Boolean,
-        value: false
-      },
-
       /*
         If there is only the single, automatic
         marker present (ie. no 'locations') then
@@ -152,6 +149,12 @@ class AppMap extends AppElement {
         value: 12
       },
 
+      // Reference to `app-main` element in top level of document body.
+      // Used to detect 'darkMode' changes.
+      _app: Object,
+
+      _darkMode: Boolean,
+
       // L.divIcon iconAnchor array.
       // Adjusts where the icon is placed.
       _iconAnchor: Array,
@@ -190,7 +193,7 @@ class AppMap extends AppElement {
   static get observers() {
     return [
       '__altLatLngChanged(alt, _lat, _lng, _map)',
-      '__darkModeChanged(darkMode, _tileLayer)',
+      '__darkModeChanged(_darkMode, _tileLayer)',
       '__locationsChanged(locations)',
       '__mapChanged(_map)',
       '__scaleChanged(scale, _map)',
@@ -199,21 +202,37 @@ class AppMap extends AppElement {
   }
 
 
-  connectedCallback() {
-    super.connectedCallback();
+  constructor() {
 
-    this.__zoomendHandler = this.__zoomendHandler.bind(this);
+    super();
+
+    this.__darkModeHandler = this.__darkModeHandler.bind(this);
+    this.__zoomendHandler  = this.__zoomendHandler.bind(this);
+
+    this._app      = document.querySelector('#app');
+    this._darkMode = this._app.darkMode;
+
+    this._app.addEventListener('app-dark-mode-changed', this.__darkModeHandler);
+  }
+
+
+  connectedCallback() {
+
+    super.connectedCallback();    
 
     this.__leaflet();
   }
 
 
   disconnectedCallback() {
+
     super.disconnectedCallback();
 
     if (this._map) {
       this._map.removeEventListener('zoomend', this.__zoomendHandler);
     }
+
+    this._app.removeEventListener('app-dark-mode-changed', this.__darkModeHandler);
   }
 
 
@@ -247,6 +266,7 @@ class AppMap extends AppElement {
 
 
   __computeMarkers(polymerObj, draggable, map, iconEl, iconAnchor) {
+
     if (!polymerObj || !map || !iconEl || !iconAnchor) { return; }
 
     const {base: locations} = polymerObj;
@@ -284,6 +304,7 @@ class AppMap extends AppElement {
 
   
   __locationsChanged(locations) {
+
     this.set('_locations', locations);
   }
 
@@ -316,6 +337,7 @@ class AppMap extends AppElement {
 
 
   __altLatLngChanged(alt, lat, lng, map) {
+
     if (
       typeof lat !== 'number' || 
       typeof lng !== 'number' ||
@@ -331,7 +353,8 @@ class AppMap extends AppElement {
 
 
   __darkModeChanged(dark, tileLayer) {
-    if (!tileLayer) { return; }
+
+    if (typeof dark !== 'boolean' || !tileLayer) { return; }
 
     if (dark) {
       tileLayer.updateFilter([
@@ -346,6 +369,7 @@ class AppMap extends AppElement {
 
 
   __mapChanged(map) {
+
     if (!map) { return; }
 
     map.addEventListener('zoomend', this.__zoomendHandler);
@@ -361,9 +385,16 @@ class AppMap extends AppElement {
 
 
   __zoomChanged(zoom, map) {
+
     if (typeof zoom !== 'number' || !map) { return; }
 
     map.setZoom(zoom, {animate: this.smooth});
+  }
+
+
+  __darkModeHandler(event) {
+
+    this._darkMode = event.detail.value;
   }
 
 
@@ -451,6 +482,7 @@ class AppMap extends AppElement {
 
 
   resize() {
+
     if (this._map) {
       this.__setIconAnchor();
       this._map.invalidateSize();
