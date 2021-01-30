@@ -51,6 +51,7 @@ class AppMap extends AppElement {
           position: relative;
           overflow: hidden;
           height:   100%;
+
           --added-marker-color: var(--app-accent-color);
           --marker-color:       var(--app-dark-color);
           --marker-size:        32px;
@@ -76,13 +77,15 @@ class AppMap extends AppElement {
           z-index: 1;
         }
 
+
+        ${this.stylePartial}
+
+
         #map {
           height: 100%;
           width:  100%;
           background-color: inherit;
         }
-
-        ${this.stylePartial}
 
       </style>
 
