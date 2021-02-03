@@ -338,10 +338,10 @@
     scroll-behavior-polyfill "^2.0.13"
     workbox-window "^6.0.2"
 
-"@longlost/app-core@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@longlost/app-core/-/app-core-2.0.0.tgz#c8bfd7a41f353649d25945a4612c3acf4a9ffec8"
-  integrity sha512-b+ke5Nu60v4x3lNUcOkFXDgmwTtU59e3tgYmH4WOaYNxRY+390lViIhq6astgpXQQS9pPcRQU4YiZJQ6A/POWw==
+"@longlost/app-core@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@longlost/app-core/-/app-core-2.2.0.tgz#38746c826e235ea8adf512f1802371704b251c54"
+  integrity sha512-ubOEtf7Da+wKavMFtsTCOzOzsRli0YSH1ZbZn3HkBOyk5hfaSiW/MZ99xB+2rL/1nEFbmJdQ/sjgQTJ/D/StwA==
   dependencies:
     "@polymer/iron-iconset-svg" "^3.0.1"
     "@polymer/paper-styles" "^3.0.1"
@@ -353,12 +353,12 @@
     scroll-behavior-polyfill "^2.0.13"
     workbox-window "^6.1.0"
 
-"@longlost/app-inputs@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@longlost/app-inputs/-/app-inputs-2.0.0.tgz#3e2ae760ff562efd7ed8cb15e9172b746190dbbf"
-  integrity sha512-iequeDPDJeH61rl32DBHjBXSoSamwj4HDa+Lj2qy6VEEqIwoykKRWXNOSTJF3fK7MzaQwAJCneovJY6pFUyWyw==
+"@longlost/app-inputs@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@longlost/app-inputs/-/app-inputs-2.0.1.tgz#c0c06da4070e46e6a8771d1a3a4495700e943beb"
+  integrity sha512-hBjWnnPwpyDqAEJEu5CH/OuRlgJaDSV3qpEgvxqSusYW9hl5ZhwLVVLs3k0nq4lEqUdQIeImhr688OsJs/7j2A==
   dependencies:
-    "@longlost/app-core" "^1.0.0"
+    "@longlost/app-core" "^2.2.0"
     "@longlost/icon-to-spinner" "^2.0.0"
     "@longlost/pencil-to-check-icon" "^1.0.3"
     "@polymer/gold-phone-input" "^3.0.1"
