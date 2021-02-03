@@ -15,6 +15,8 @@ import {
   html
 } from '@longlost/app-core/app-element.js';
 
+import {hexToRGBA} from '@longlost/app-core/lambda.js';
+
 import {
   enableScrolling,
   getComputedStyle,
@@ -43,32 +45,6 @@ import './app-map.js';
 // then lowercase the remaining string.
 const normalize = str => 
   str.replace(/\\*\/*\s*\,*/g, '').slice(0, 40).toLowerCase();
-
-
-const hexToRGBA = (hex, alpha = 1) => {
-
-  const toHexidecimal = (a, b) => `0x${a}${b}`;
-
-  const toCss = (r, g, b) => 
-    `rgba(${Number(r)}, ${Number(g)}, ${Number(b)}, ${Number(alpha)})`;
-
-  // 3 digits
-  if (hex.length === 4) {
-    const r = toHexidecimal(hex[1], hex[1]);
-    const g = toHexidecimal(hex[2], hex[2]);
-    const b = toHexidecimal(hex[3], hex[3]);
-
-    return toCss(r, g, b);
-  } 
-  // 6 digits
-  else if (hex.length === 7) {
-    const r = toHexidecimal(hex[1], hex[2]);
-    const g = toHexidecimal(hex[3], hex[4]);
-    const b = toHexidecimal(hex[5], hex[6]);
-
-    return toCss(r, g, b);
-  }
-};
 
 
 const cacheResult = result => {
