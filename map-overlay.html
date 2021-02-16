@@ -1,23 +1,28 @@
 
 <style>
 
-  :host {
-    display: block;
-    position: relative;
+  :host {    
     --blur-effect:             10px;
     --header-background-color: var(--app-primary-dark-color);
     --header-color:            var(--app-primary-dark-color-text);
-    --gradient-start:          rgba(0, 0, 0, 0.1);
-    --gradient-end:            rgba(33, 33, 33, 0.5);
+
+    display:  block;
+    position: relative;
+    color:    var(--header-color);
+
+    /* Not part of public API. Do not use! */
+    --gradient-start: rgba(0, 0, 0, 0.1);
+    --gradient-end:   rgba(33, 33, 33, 0.5);
   }
       
   #overlay {
-    padding-bottom: 0px;
-    --overlay-toolbar-backdrop-filter:  blur(var(--blur-effect));
-    --overlay-toolbar-background-color: transparent;
-    --overlay-toolbar-color:            var(--header-color);
-    --overlay-background-color:         var(--app-body-color);
-    --overlay-toolbar-pointer-events:   none;
+    padding-bottom:   0px;
+    background-color: var(--app-body-color);
+
+    --header-backdrop-filter:  blur(var(--blur-effect));
+    --header-background-color: transparent;
+    --header-color:            currentColor;
+    --header-pointer-events:   none;
   }
 
   .blur {
