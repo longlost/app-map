@@ -29,7 +29,12 @@ import {
   reverse
 } from './geosearch.js';
 
-import services   from '@longlost/app-core/services/services.js';
+import {
+  query as dbQuery, 
+  set as dbSet, 
+  textStartsWithSearch as dbTextSearch
+} from '@longlost/app-core/services/services.js';
+
 import htmlString from './map-overlay.html';
 import '@longlost/app-inputs/search-input.js';
 import '@longlost/app-overlays/app-header-overlay.js';
@@ -51,7 +56,7 @@ const cacheResult = result => {
   
   const normalized = normalize(result.label);
 
-  return services.set({
+  return dbSet({
     coll: 'geolocations',
     doc:   normalized,
     data:  {...result, queryKey: normalized}
@@ -247,10 +252,10 @@ class MapOverlay extends AppElement {
 
         const {lat, lng} = query;
 
-        const cached = await services.query({
+        const cached = await dbQuery({
           coll:      'geolocations',
           limit:      1,
-          query: [{
+          constraints: [{
             field:     'lat', 
             operator:  '==',
             comparator: lat
@@ -282,7 +287,7 @@ class MapOverlay extends AppElement {
       }
       else {   
 
-        const cached = await services.textStartsWithSearch({
+        const cached = await dbTextSearch({
           coll:      'geolocations', 
           direction: 'asc', 
           limit:      10, 
