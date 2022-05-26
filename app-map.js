@@ -11,9 +11,8 @@
   **/
 
 import {AppElement, html} from '@longlost/app-core/app-element.js';
-import {htmlLiteral}      from '@polymer/polymer/lib/utils/html-tag.js';
-import styles             from 'leaflet/dist/leaflet.css';
 import L                  from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import 'leaflet.tilelayer.colorfilter';
 import '@polymer/iron-icon/iron-icon.js';
 import './map-icons.js';
@@ -44,7 +43,7 @@ class AppMap extends AppElement {
   static get template() {
 
     return html`
-      <style>
+      <style include="leaflet">
       
         :host {
           display:  block;
@@ -77,10 +76,6 @@ class AppMap extends AppElement {
           z-index: 1;
         }
 
-
-        ${this.stylePartial}
-
-
         #map {
           height: 100%;
           width:  100%;
@@ -98,12 +93,7 @@ class AppMap extends AppElement {
       <div id="map"></div>
     `;
   }
-
-
-  static get stylePartial() {
-    return htmlLiteral([styles.toString()]);
-  }
-
+  
 
   static get properties() {
     return {
