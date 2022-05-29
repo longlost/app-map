@@ -1,0 +1,49 @@
+
+<style include="leaflet">
+      
+  :host {
+    display:  block;
+    position: relative;
+    overflow: hidden;
+    height:   100%;
+
+    --added-marker-color: var(--app-secondary-color);
+    --marker-color:       var(--app-primary-dark-color);
+    --marker-size:        32px;
+  }
+
+  .marker-icon {
+    position: absolute;
+    top:     -200%;
+    z-index: -1;
+    height:   var(--marker-size);
+    width:    var(--marker-size);
+  }
+
+  .div-icon .marker-icon {
+    position: static;
+    top:      0px;
+    z-index:  0;
+    color:    var(--marker-color);
+  }
+
+  .added-marker-icon .marker-icon {
+    color:   var(--added-marker-color);
+    z-index: 1;
+  }
+
+  #map {
+    height: 100%;
+    width:  100%;
+    background-color: inherit;
+  }
+
+</style>
+
+
+<iron-icon id="markerIcon" 
+           class="marker-icon" 
+           icon="map-icons:place">
+</iron-icon>
+
+<div id="map"></div>
