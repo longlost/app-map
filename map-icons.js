@@ -10,9 +10,6 @@
  	*/
 
 import '@polymer/iron-iconset-svg/iron-iconset-svg.js';
-import htmlString from './map-icons.html';
+import template from './map-icons.html';
 
-const mapIcons 		 = document.createElement('div');
-mapIcons.innerHTML = htmlString;
-mapIcons.setAttribute('style', 'display: none;');
-document.head.appendChild(mapIcons);
+document.head.appendChild(template.content);

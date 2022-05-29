@@ -10,8 +10,9 @@
   *
   **/
 
-import {AppElement, html} from '@longlost/app-core/app-element.js';
-import L                  from 'leaflet';
+import {AppElement} from '@longlost/app-core/app-element.js';
+import L            from 'leaflet';
+import template     from './app-map.html';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.tilelayer.colorfilter';
 import '@polymer/iron-icon/iron-icon.js';
@@ -41,57 +42,7 @@ class AppMap extends AppElement {
   static get is() { return 'app-map'; }
 
   static get template() {
-
-    return html`
-      <style include="leaflet">
-      
-        :host {
-          display:  block;
-          position: relative;
-          overflow: hidden;
-          height:   100%;
-
-          --added-marker-color: var(--app-accent-color);
-          --marker-color:       var(--app-dark-color);
-          --marker-size:        32px;
-        }
-
-        .marker-icon {
-          position: absolute;
-          top:     -200%;
-          z-index: -1;
-          height:   var(--marker-size);
-          width:    var(--marker-size);
-        }
-
-        .div-icon .marker-icon {
-          position: static;
-          top:      0px;
-          z-index:  0;
-          color:    var(--marker-color);
-        }
-
-        .added-marker-icon .marker-icon {
-          color:   var(--added-marker-color);
-          z-index: 1;
-        }
-
-        #map {
-          height: 100%;
-          width:  100%;
-          background-color: inherit;
-        }
-
-      </style>
-
-
-      <iron-icon id="markerIcon" 
-                 class="marker-icon" 
-                 icon="map-icons:place">
-      </iron-icon>
-
-      <div id="map"></div>
-    `;
+    return template;
   }
   
 

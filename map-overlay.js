@@ -10,10 +10,7 @@
   *
   **/
 
-import {
-  AppElement, 
-  html
-} from '@longlost/app-core/app-element.js';
+import {AppElement} from '@longlost/app-core/app-element.js';
 
 import {hexToRGBA} from '@longlost/app-core/lambda.js';
 
@@ -35,7 +32,7 @@ import {
   textStartsWithSearch as dbTextSearch
 } from '@longlost/app-core/services/services.js';
 
-import htmlString from './map-overlay.html';
+import template from './map-overlay.html';
 import '@longlost/app-inputs/search-input.js';
 import '@longlost/app-overlays/app-header-overlay.js';
 import '@longlost/app-spinner/app-spinner.js';
@@ -98,7 +95,7 @@ class MapOverlay extends AppElement {
   static get is() { return 'map-overlay'; }
 
   static get template() {
-    return html([htmlString]);
+    return template;
   }
 
 
