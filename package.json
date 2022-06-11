@@ -1,6 +1,6 @@
 {
   "name": "@longlost/app-map",
-  "version": "1.5.6",
+  "version": "1.5.7",
   "description": "Custom element wrapper for leaflet map api.",
   "main": "app-map.js",
   "scripts": {
@@ -17,14 +17,14 @@
   },
   "homepage": "https://github.com/longlost/app-map#readme",
   "dependencies": {
-    "@longlost/app-core": "^9.0.1",
+    "@longlost/app-core": "^9.0.4",
     "@longlost/app-inputs": "^2.2.2",
     "@longlost/app-overlays": "^2.0.2",
     "@longlost/app-spinner": "^1.2.2",
     "@polymer/iron-icon": "^3.0.1",
     "@polymer/iron-iconset-svg": "^3.0.1",
     "@polymer/paper-icon-button": "^3.0.2",
-    "@polymer/polymer": "^3.5.0",
+    "@polymer/polymer": "^3.5.1",
     "leaflet": "^1.8.0",
     "leaflet.tilelayer.colorfilter": "^1.2.5"
   },
